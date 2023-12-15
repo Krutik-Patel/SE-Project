@@ -46,13 +46,15 @@ def live_inference():
         _, base64_string = image.split(',')
         image_data = base64.b64decode(base64_string)
         image_to_predict = Image.open(BytesIO(image_data))
-        image_to_predict = image_to_predict.resize((152, 152))
-        image_to_predict = np.array(image_to_predict)
-        image_to_predict = image_to_predict.reshape(-1, 152, 152, 1) / 255
+        # image_to_predict = image_to_predict.resize((152, 152))
+        # image_to_predict = np.array(image_to_predict)
+        # image_to_predict = image_to_predict.reshape(-1, 152, 152, 1) / 255
 
         # get the prediction
+        
+        # the image passed to process_image is of Image class of PIL
         prediction, predictionTarget = process_image(image_to_predict)
-        return json.dumps({'prediction': prediction, 'image': predictionTarget})
+        return json.dumps({'prediction': prediction, 'predictionTarget': base64.b64encode(predictionTarget).decode('utf-8')})
 
 @app.route('/inference', methods=['POST', 'GET'])
 def receive_image():
@@ -72,12 +74,12 @@ def receive_image():
 
         # change the image to numpy array
         image_to_predict = Image.open(image)
-        image_to_predict = image_to_predict.resize((152, 152))
-        image_to_predict = np.array(image_to_predict)
-        image_to_predict = image_to_predict.reshape(-1, 152, 152, 1) / 255
+        # image_to_predict = image_to_predict.resize((152, 152))
+        # image_to_predict = np.array(image_to_predict)
+        # image_to_predict = image_to_predict.reshape(-1, 152, 152, 1) / 255
 
         # get the prediction
-        prediction = process_image(image_to_predict)
+        prediction, _ = process_image(image_to_predict)
 
 # pass the prediction to the frontend
         print("passed ")
@@ -97,8 +99,10 @@ def process_image(data):
         CRIMINAL_LIST = pickle.load(open("saved_model/labels.pickle", 'rb'))
 
 
-    result = generateResponse.generate_result(data, model=MODEL)
-    return CRIMINAL_LIST[result - 1]
+    result, predictionTarget = generateResponse.generate_result(data, model=MODEL)
+    if result is None:
+        return None, predictionTarget
+    return CRIMINAL_LIST[result - 1], predictionTarget
 
 def train_request():
     status, CRIMINAL_LIST, MODEL = generateResponse.train_model()

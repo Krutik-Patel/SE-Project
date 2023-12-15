@@ -1,28 +1,40 @@
 from model import model_train, model_predict
 import numpy as np
+import cv2
+import numpy as np
 
 MODEL = None
 CRIMINAL_LIST = {}
 
-def convert_data(data):
-    import cv2
-    import numpy as np
+def convert_data(image):
+    CAS_DIR = './utils/data/'
+    cascade = cv2.CascadeClassifier(CAS_DIR+'haarcascade_frontalface_alt2.xml')
+    colour = (0, 0, 255)
+    train_image_dimensions = (152, 152)
+    stroke = 2
 
-    # Inside the process_image function
+    print("IN CONVERT DATA")
 
-    print(data, type(data))
-
-    nparr = np.frombuffer(data, np.uint8)
-    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    cascade = cv.CascadeClassifier(CAS_DIR+'haarcascade_frontalface_alt2.xml')
-    faces = cascade.detectMultiScale(image, minNeighbors=1, scaleFactor=1.5)
+    image_np_array = np.array(image)
+    image_col = cv2.cvtColor(image_np_array, cv2.COLOR_BGR2RGB)
+    image_gray = cv2.cvtColor(image_np_array, cv2.COLOR_BGR2GRAY)    
+    
+    # get faces from the image
+    print("Image: ", image_gray.shape)
+    print(image_np_array.shape)
+    faces = cascade.detectMultiScale(image_gray, minNeighbors=5, scaleFactor=1.5)
+    print("FACES: ", faces)
 
     for x, y, w, h in faces:
-        roi_gray = gray[y: y + h, x: x + w]
-        roi_gray = cv.resize(roi_gray, train_image_dimensions, interpolation=cv.INTER_LINEAR)
+        print("IN LOOP")
+        roi_gray = image_gray[y: y + h, x: x + w]
+        roi_gray = cv2.resize(roi_gray, train_image_dimensions, interpolation=cv.INTER_LINEAR)
         roi_gray = roi_gray.reshape(-1, 152, 152, 1) / 255
-        
-        return roi_gray
+        cv2.rectangle(image_col, (x, y), (x + w, y + h), colour, stroke)
+
+        print("Shape: ", roi_gray.shape, data.shape)
+        return roi_gray, image_col
+    return None, image_col
     
 
 
@@ -34,9 +46,16 @@ def generate_result(data, model):
 
 
     # the data is the image
-    prediction = model_predict(data, MODEL)
+    cutImage, predictionImage = convert_data(data)
+    _, predictionImage = cv2.imencode('.jpg', predictionImage)
+    if cutImage is None:
+        return None, predictionImage
+
+    prediction = model_predict(curImage, MODEL)
+    print(len(prediction), prediction)
     prediction = np.argmax(prediction)
-    return prediction
+    print("Prediction: ", prediction)
+    return prediction, predictionImage
 
 def get_database_instance():
     import database
