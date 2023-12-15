@@ -1,6 +1,8 @@
 from pymongo import MongoClient
 import pickle
 import pymongo
+from dotenv import load_dotenv
+import os
 
 class ImageDatabase:
     # here database is static variable
@@ -13,7 +15,8 @@ class ImageDatabase:
         return ImageDatabase.database
 
     def __init__(self, database_name='image_database', collection_name='image_collection'):
-        self.client = MongoClient('mongodb+srv://krutikmpatel:123@cluster0.eoe0j9c.mongodb.net/?retryWrites=true&w=majority', 27017)
+        load_dotenv()
+        self.client = MongoClient(os.getenv("API_ENDPOINT"), 27017)
         self.db = self.client[database_name]
         self.collection = self.db[collection_name]
 
