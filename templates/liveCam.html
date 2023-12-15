@@ -49,7 +49,7 @@
   <div class="col-md-5 mx-auto">  
     <div class="container bg-success my-4 card-body">
       <h3 class="text-white">Detection</h3>
-      <video id="video2" width="400" height="300" autoplay></video>
+      <img id="video2" width="400" height="300">
     </div>
   </div>
 </div>
@@ -102,16 +102,17 @@
     camera.addEventListener('change', () => {
       const selectedCamera = event.target.value;
       navigator.mediaDevices.getUserMedia({ video: { deviceId : { exact : selectedCamera }}}).then((stream) => {
-        video.srcObject = stream;
+        video1.srcObject = stream;
       }).catch((error) => {
         console.error("Error assesing webcam: ", error);
       });
     });
 
-    video.addEventListener('play', () => {
+    video1.addEventListener('play', () => {
       setInterval(() => {
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        context.drawImage(video1, 0, 0, canvas.width, canvas.height);
         const imageData = canvas.toDataURL('image/jpg');
+        // console.log(imageData);
         sendDataToBackend(imageData);
       }, 5000);
     });
@@ -127,7 +128,8 @@
         return response.json();
       }).then((data) => {
         resEl.innerHTML = data.prediction;
-        video2.srcObject = data.predictionTarget;
+        // console.log(data.predictionTarget);
+        video2.src = `data:image/jpeg;base64,${data.predictionTarget}`;
       }).catch((error) => {
         console.error("Error sending data to backend: ", error);
       });
