@@ -56,7 +56,7 @@
     </nav>
 
 <div class="container col-md-4 bg-success my-4 card-body">
-    <form action="upload" method="post" enctype="multipart/form-data">
+    <form action="inference" method="post" enctype="multipart/form-data">
       <label for="imageInput">Choose an image:</label>
       <input type="file" id="imageInput" name="image" accept="image/*">
       <br>
@@ -65,10 +65,30 @@
 </div>
 <div class="container col-md-4 my-4">
     <div class="card mb-3" style="max-width: 540px">
+      {% if prediction %}
       <div class="row g-0">
         <div class="col-md-4">
           <img
-            src="./images/criminal1.jpg"
+            src={{url_for('static', filename='/upload/' + filename)}}
+            class="img-fluid rounded-start"
+            alt="..."
+          />
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title">{{ prediction }}</h5>
+            <p class="card-text">Criminal Data</p>
+            <p class="card-text">
+              <small class="text-muted">Other data</small>
+            </p>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="row g-0">
+        <div class="col-md-4">
+          <img
+            src={{url_for('static', filename='upload/criminal1.jpg')}}
             class="img-fluid rounded-start"
             alt="..."
           />
@@ -83,26 +103,7 @@
           </div>
         </div>
       </div>
-    </div>
-    <div class="card mb-3" style="max-width: 540px">
-      <div class="row g-0">
-        <div class="col-md-4">
-          <img
-            src="./images/criminal2.avif"
-            class="img-fluid rounded-start"
-            alt="..."
-          />
-        </div>
-        <div class="col-md-8">
-          <div class="card-body">
-            <h5 class="card-title">Criminal Name</h5>
-            <p class="card-text">Criminal Data</p>
-            <p class="card-text">
-              <small class="text-muted">Other data</small>
-            </p>
-          </div>
-        </div>
-      </div>
+      {% endif %}
     </div>
 </div>
     <script
