@@ -9,6 +9,7 @@ from io import BytesIO
 from PIL import Image
 import os
 import numpy as np
+import json
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = r'C:\Users\patel\OneDrive - iiit-b\Desktop\coursework\sem 5\Software Engineering Lab\project\deliverable 3\static\upload'    
@@ -34,11 +35,31 @@ def home():
 def liveCam():
     return render_template('liveCam.html')
 
+
+@app.route('/liveInference', methods=['POST', 'GET'])
+def live_inference():
+    if request.method == "POST":
+        
+        image = request.get_json()['image']
+
+        # change the image to numpy array
+        _, base64_string = image.split(',')
+        image_data = base64.b64decode(base64_string)
+        image_to_predict = Image.open(BytesIO(image_data))
+        image_to_predict = image_to_predict.resize((152, 152))
+        image_to_predict = np.array(image_to_predict)
+        image_to_predict = image_to_predict.reshape(-1, 152, 152, 1) / 255
+
+        # get the prediction
+        prediction, predictionTarget = process_image(image_to_predict)
+        return json.dumps({'prediction': prediction, 'image': predictionTarget})
+
 @app.route('/inference', methods=['POST', 'GET'])
 def receive_image():
     if request.method == "POST":
         image = request.files['image']
 
+        print("Imgae: " ,image)
 
         if image.filename == '':
             print("File name is invalid")
@@ -68,13 +89,12 @@ def receive_image():
 MODEL = None
 CRIMINAL_LIST = None
 
-@app.route('/display/<filename>')
-def display_image(filename):
-    return redirect(url_for('static', filename='upload/' + filename), code=301)
 
 def process_image(data):
-    MODEL = pickle.load(open("saved_model/model.pickle", 'rb'))
-    CRIMINAL_LIST = pickle.load(open("saved_model/labels.pickle", 'rb'))
+    global MODEL, CRIMINAL_LIST
+    if MODEL is None:
+        MODEL = pickle.load(open("saved_model/model.pickle", 'rb'))
+        CRIMINAL_LIST = pickle.load(open("saved_model/labels.pickle", 'rb'))
 
 
     result = generateResponse.generate_result(data, model=MODEL)

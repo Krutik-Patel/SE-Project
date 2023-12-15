@@ -21,7 +21,7 @@ def convert_data(data):
         roi_gray = gray[y: y + h, x: x + w]
         roi_gray = cv.resize(roi_gray, train_image_dimensions, interpolation=cv.INTER_LINEAR)
         roi_gray = roi_gray.reshape(-1, 152, 152, 1) / 255
-
+        
         return roi_gray
     
 
